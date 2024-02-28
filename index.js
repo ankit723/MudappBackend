@@ -88,16 +88,6 @@ app.get("/api/getAllUser", async (req, res) => {
 });
 // index.js
 
-module.exports = async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-    const data = { message: 'Hello from Vercel!' };
-    res.status(200).json(data);
-};
-  
-
 app.listen(9000, () => {
   console.log("The app has started to listen at port 9000");
 });
