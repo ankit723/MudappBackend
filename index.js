@@ -1,5 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
@@ -33,56 +31,62 @@ const Users = new mongoose.model(
 console.log("Connected to Users collection!");
 
 app.post("/api/registerNewUser", async (req, res) => {
-    const body = req.body;
-  
-    try {
-  
-      establishMongooseConnection("BlogInsiderWiki");
-  
-      // Create a new user with the hashed password
-      const user = new Users({ ...body });
-  
-      // Save the user to the database
-      const userSaved = await user.save();
-  
-      res.status(200).json({ status: "userRegistered", user: userSaved });
-      console.log("User saved");
-    } catch (err) {
-      console.error("Error during user registration:", err);
-      res.status(404).json({ status: "notRegistered" });
-    }
+  const body = req.body;
+
+  try {
+    establishMongooseConnection("mdAdminBack");
+
+    // Create a new user with the hashed password
+    const user = new Users({ ...body });
+
+    // Save the user to the database
+    const userSaved = await user.save();
+
+    res.status(200).json({ status: "userRegistered", user: userSaved });
+    console.log("User saved");
+  } catch (err) {
+    console.error("Error during user registration:", err);
+    res.status(404).json({ status: "notRegistered" });
+  }
 });
 
 app.post("/api/loginUser", async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        establishMongooseConnection("BlogInsiderWiki");
-        const user = await Users.findOne({ username });
-        if (!user) {
-            console.log("does not exist")
-            return res.status(401).json({ status: "userNotAuthenticated" });
-        }
-
-        let result=user.password===password
-
-        if (result) {
-            console.log("User authenticated");
-            return res.status(200).json({ status: "userAuthenticated", user });
-        } else {
-            console.log("User not authenticated");
-            return res.status(401).json({ status: "userNotAuthenticated" });
-        }
-    } catch (err) {
-        console.error("Error during login:", err);
-        res.status(500).json({ status: "error", message: "Internal Server Error" });
+  const { username, password } = req.body;
+  try {
+    establishMongooseConnection("mdAdminBack");
+    const user = await Users.findOne({ username });
+    if (!user) {
+      console.log("does not exist");
+      return res.status(401).json({ status: "userNotAuthenticated" });
     }
+
+    let result = user.password === password;
+
+    if (result) {
+      console.log("User authenticated");
+      return res.status(200).json({ status: "userAuthenticated", user });
+    } else {
+      console.log("User not authenticated");
+      return res.status(401).json({ status: "userNotAuthenticated" });
+    }
+  } catch (err) {
+    console.error("Error during login:", err);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
 });
 
-
+app.get("/api/getAllUser", async (req, res) => {
+  try {
+    establishMongooseConnection("mdAdminBack");
+    const users = await Users.find({});
+    console.log(users)
+    return res.status(200).json({ status: "userAuthenticated", users });
+  } catch (err) {
+    console.error("Error during login:", err);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+});
 
 app.listen(9000, () => {
   console.log("The app has started to listen at port 9000");
 });
-
-
-
