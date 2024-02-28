@@ -89,13 +89,10 @@ app.get("/api/getAllUser", async (req, res) => {
 // index.js
 
 module.exports = async (req, res) => {
-    // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
-    // Handle your serverless function logic here
-    // Example:
+
     const data = { message: 'Hello from Vercel!' };
     res.status(200).json(data);
 };
