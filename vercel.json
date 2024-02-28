@@ -6,15 +6,10 @@
             "use": "@vercel/node"
         }
     ],
-    "routes": [
+    "routes":[
         {
-        "src": "/api/.*",
-        "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-            "Access-Control-Allow-Headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-        }
+            "src":"/(.*)",
+            "dest":"/"
         }
     ]
 }
