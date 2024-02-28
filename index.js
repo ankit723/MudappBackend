@@ -51,10 +51,10 @@ app.post("/api/registerNewUser", async (req, res) => {
 });
 
 app.post("/api/loginUser", async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
   try {
     establishMongooseConnection("mdAdminBack");
-    const user = await Users.findOne({ username });
+    const user = await Users.findOne({ email });
     if (!user) {
       console.log("does not exist");
       return res.status(401).json({ status: "userNotAuthenticated" });
@@ -86,6 +86,19 @@ app.get("/api/getAllUser", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 });
+
+app.post("/api/removeUser", async (req, res) => {
+    const { email } = req.body;
+    try {
+      establishMongooseConnection("mdAdminBack");
+      const user = await Users.deleteOne({ email })
+      return res.status(200).json({ status: "userAccessRevoked", user });
+    } catch (err) {
+      console.error("Error during login:", err);
+      res.status(500).json({ status: "error", message: "Internal Server Error" });
+    }
+  });
+
 // index.js
 
 app.listen(9000, () => {
