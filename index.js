@@ -7,9 +7,7 @@ import mongoose from "mongoose";
 const app = express();
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors({
-    origin: 'http://localhost:3000'
-}));
+app.use(cors());
 
 //function for establishing connection with mongodb atlas
 function establishMongooseConnection(dbName) {
@@ -88,6 +86,20 @@ app.get("/api/getAllUser", async (req, res) => {
     res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 });
+// index.js
+
+module.exports = async (req, res) => {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+    // Handle your serverless function logic here
+    // Example:
+    const data = { message: 'Hello from Vercel!' };
+    res.status(200).json(data);
+};
+  
 
 app.listen(9000, () => {
   console.log("The app has started to listen at port 9000");
