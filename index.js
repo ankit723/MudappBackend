@@ -30,6 +30,12 @@ const Users = new mongoose.model(
 );
 console.log("Connected to Users collection!");
 
+const Contents = new mongoose.model(
+  "contentCollection",
+  new mongoose.Schema({}, { strict: false })
+);
+console.log("Connected to Content collection!");
+
 app.post("/api/registerNewUser", async (req, res) => {
   const body = req.body;
 
@@ -79,7 +85,7 @@ app.get("/api/getAllUser", async (req, res) => {
   try {
     establishMongooseConnection("mdAdminBack");
     const users = await Users.find({});
-    console.log(users)
+    console.log(users);
     return res.status(200).json({ status: "userAuthenticated", users });
   } catch (err) {
     console.error("Error during login:", err);
@@ -88,18 +94,100 @@ app.get("/api/getAllUser", async (req, res) => {
 });
 
 app.post("/api/removeUser", async (req, res) => {
-    const { email } = req.body;
+  const { email } = req.body;
+  try {
+    establishMongooseConnection("mdAdminBack");
+    const user = await Users.deleteOne({ email });
+    return res.status(200).json({ status: "userAccessRevoked", user });
+  } catch (err) {
+    console.error("Error during deleting:", err);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+});
+
+app.post("/api/totalRegisteredUser", async (req, res) => {
+  const { country } = req.body;
+  if (country != undefined) {
     try {
       establishMongooseConnection("mdAdminBack");
-      const user = await Users.deleteOne({ email })
-      return res.status(200).json({ status: "userAccessRevoked", user });
+      const users = await Users.find({ country });
+      return res.status(200).json({ status: "userRecieved", users });
     } catch (err) {
-      console.error("Error during login:", err);
-      res.status(500).json({ status: "error", message: "Internal Server Error" });
+      console.error("Error during getting users:", err);
+      res
+        .status(500)
+        .json({ status: "error", message: "Internal Server Error" });
     }
-  });
+  }
+  try {
+    establishMongooseConnection("mdAdminBack");
+    const users = await Users.find({});
+    return res.status(200).json({ status: "userRecieved", users });
+  } catch (err) {
+    console.error("Error during getting users:", err);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+});
 
-// index.js
+app.get("/api/getRealTimeUsers", async (req, res) => {
+  try {
+    establishMongooseConnection("mdAdminBack");
+    const users = await Users.find({ active: true });
+    return res.status(200).json({ status: "userRecieved", users });
+  } catch (err) {
+    console.error("Error during getting current users:", err);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+});
+
+app.get("/api/getAvgScrnTimeBasedOnCountryLanguage", async (req, res) => {
+  const { country, language } = req.body;
+  try {
+    establishMongooseConnection("mdAdminBack");
+    const users = await Users.find({ country, language });
+    let avgTime = 0;
+    let count = 0;
+    users.forEach((user) => {
+      avgTime += user.scrnTime;
+      count++;
+    });
+    avgTime = avgTime / count;
+    return res.status(200).json({ status: "userRecieved", avgTime });
+  } catch (err) {
+    console.error("Error during getting average screen time:", err);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+});
+
+app.get("/api/getScreenTimeByUser", async (req, res) => {
+  const { userId } = req.body;
+  try {
+    establishMongooseConnection("mdAdminBack");
+    const user = await Users.findById(userId);
+    return res
+      .status(200)
+      .json({ status: "userRecieved", screenTime: user.scrnTime });
+  } catch (err) {
+    console.error("Error during getting average screen time:", err);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+});
+
+app.post("/api/totalRegisteredContent", async (req, res) => {
+  const { country } = req.body;
+  if (country != undefined) {
+    try {
+      establishMongooseConnection("mdAdminBack");
+      const contents = await Contents.find({ country });
+      return res.status(200).json({ status: "userRecieved", users });
+    } catch (err) {
+      console.error("Error during getting users:", err);
+      res
+        .status(500)
+        .json({ status: "error", message: "Internal Server Error" });
+    }
+  }
+});
 
 app.listen(9000, () => {
   console.log("The app has started to listen at port 9000");
