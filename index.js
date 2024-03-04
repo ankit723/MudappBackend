@@ -179,15 +179,110 @@ app.post("/api/totalRegisteredContent", async (req, res) => {
     try {
       establishMongooseConnection("mdAdminBack");
       const contents = await Contents.find({ country });
-      return res.status(200).json({ status: "userRecieved", users });
+      return res.status(200).json({ status: "userRecieved", contents });
     } catch (err) {
       console.error("Error during getting users:", err);
-      res
-        .status(500)
-        .json({ status: "error", message: "Internal Server Error" });
+      res.status(500).json({ status: "error", message: "Internal Server Error" });
     }
   }
 });
+
+app.post("/api/contentWriterBasedOnCountry", async (req, res) => {
+  const { country } = req.body;
+  if (country != undefined) {
+    try {
+      establishMongooseConnection("mdAdminBack");
+      const contents = await Contents.find({ country });
+      const writers=contents.map((content)=>{
+        return content.writer
+      })
+      return res.status(200).json({ status: "userRecieved", writer });
+    } catch (err) {
+      console.error("Error during getting users:", err);
+      res.status(500).json({ status: "error", message: "Internal Server Error" });
+    }
+  }
+});
+
+app.post("/api/reportedContentBasedOnCategory", async (req, res) => {
+  const { category } = req.body;
+  if (category != undefined) {
+    try {
+      establishMongooseConnection("mdAdminBack");
+      const contents = await Contents.find({ category, reported:true });
+      return res.status(200).json({ status: "userRecieved", contents });
+    } catch (err) {
+      console.error("Error during getting users:", err);
+      res.status(500).json({ status: "error", message: "Internal Server Error" });
+    }
+  }
+});
+
+
+app.post("/api/getAutoBlockedContents", async (req, res) => {
+  try {
+    establishMongooseConnection("mdAdminBack");
+    const contents = await Contents.find({autoBlocked:true });
+    return res.status(200).json({ status: "userRecieved", contents });
+  } catch (err) {
+    console.error("Error during getting users:", err);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+});
+
+
+app.post("/api/blockContent", async (req, res) => {
+  const { contentId } = req.body;
+  try {
+    establishMongooseConnection("mdAdminBack");
+    const contents = await Contents.findByIdandUpdate(contentId, {block:true }, {new:true});
+    return res.status(200).json({ status: "userRecieved", contents });
+  } catch (err) {
+    console.error("Error during getting users:", err);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+});
+
+app.post("/api/unBlockContent", async (req, res) => {
+  const { contentId } = req.body;
+  try {
+    establishMongooseConnection("mdAdminBack");
+    const contents = await Contents.findByIdandUpdate(contentId, {block:false }, {new:true});
+    return res.status(200).json({ status: "userRecieved", contents });
+  } catch (err) {
+    console.error("Error during getting users:", err);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+});
+
+app.post("/api/updateShareCount", async (req, res) => {
+  const { contentId } = req.body;
+  try {
+    establishMongooseConnection("mdAdminBack");
+    const content = await Contents.findById(contentId);
+    sharedTemp=content.shared
+    const contents = await Contents.findByIdandUpdate(contentId, {shared:sharedTemp+1 }, {new:true});
+    return res.status(200).json({ status: "userRecieved", contents });
+  } catch (err) {
+    console.error("Error during getting users:", err);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+});
+
+
+app.post("/api/getSharedCount", async (req, res) => {
+  const { contentId } = req.body;
+  try {
+    establishMongooseConnection("mdAdminBack");
+    const content = await Contents.findById(contentId);
+    return res.status(200).json({ status: "userRecieved", sharedTImes:content.shared });
+  } catch (err) {
+    console.error("Error during getting users:", err);
+    res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+});
+
+
 
 app.listen(9000, () => {
   console.log("The app has started to listen at port 9000");
