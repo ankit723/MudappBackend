@@ -2,6 +2,44 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
+import admin from 'firebase-admin'
+import serviceAccount from './xfantasy-d0d9f-firebase-adminsdk-8rpof-c0a3e81b02.json' with { type: "json" };
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const accessAllCollectionItem=(collectionName)=>{
+  const db = admin.firestore();
+  const docRef = db.collection(collectionName)
+  docRef.get()
+  .then((querySnapshot) => {
+    querySnapshot.forEach((doc) => {
+      console.log(doc.id, '=>', doc.data());
+    });
+  })
+  .catch((error) => {
+    console.error('Error getting documents:', error);
+  });
+}
+
+const accessItemWithQuery=(collectionName, key, comparision, value)=>{
+  const db = admin.firestore();
+  const docRef = db.collection(collectionName)
+  docRef.where(key, comparision, value).get()
+  .then((querySnapshot) => {
+    querySnapshot.forEach((doc) => {
+      console.log(doc.id, '=>', doc.data());
+    });
+  })
+  .catch((error) => {
+    console.error('Error getting documents:', error);
+  });
+}
+
+
+
+
 
 //creating and initialising the apps
 const app = express();
