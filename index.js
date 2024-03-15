@@ -9,34 +9,46 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
-const accessAllCollectionItem=(collectionName)=>{
-  const db = admin.firestore();
-  const docRef = db.collection(collectionName)
-  docRef.get()
-  .then((querySnapshot) => {
-    querySnapshot.forEach((doc) => {
-      console.log(doc.id, '=>', doc.data());
-    });
-  })
-  .catch((error) => {
-    console.error('Error getting documents:', error);
+const db = admin.firestore();
+
+const accessAllCollectionItem = (collectionName) => {
+  return new Promise((resolve, reject) => {
+    const docRef = db.collection(collectionName);
+    const data = [];
+    docRef.get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          data.push(doc.data());
+        });
+        resolve(data); // Resolve the promise with the data
+      })
+      .catch((error) => {
+        console.error('Error getting documents:', error);
+        reject(error); // Reject the promise with the error
+      });
   });
 }
 
-const accessItemWithQuery=(collectionName, key, comparision, value)=>{
-  const db = admin.firestore();
-  const docRef = db.collection(collectionName)
-  docRef.where(key, comparision, value).get()
-  .then((querySnapshot) => {
-    querySnapshot.forEach((doc) => {
-      console.log(doc.id, '=>', doc.data());
-    });
-  })
-  .catch((error) => {
-    console.error('Error getting documents:', error);
+const accessItemWithQuery = (collectionName, key, comparison, value) => {
+  return new Promise((resolve, reject) => {
+    const docRef = db.collection(collectionName);
+    const data = [];
+    docRef.where(key, comparison, value).get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          data.push(doc.data());
+        });
+        resolve(data); // Resolve the promise with the data
+      })
+      .catch((error) => {
+        console.error('Error getting documents:', error);
+        reject(error); // Reject the promise with the error
+      });
   });
 }
 
+
+// accessAllCollectionItem("AllUserPosts").then((data)=>console.log(data))
 
 
 
@@ -143,12 +155,17 @@ app.post("/api/removeUser", async (req, res) => {
   }
 });
 
+
+
+
+
 app.post("/api/totalRegisteredUser", async (req, res) => {
   const { country } = req.body;
   if (country != undefined) {
     try {
-      establishMongooseConnection("mdAdminBack");
-      const users = await Users.find({ country });
+      // establishMongooseConnection("mdAdminBack");
+      // const users = await Users.find({ country });
+      const users = await accessItemWithQuery("UserData", 'country', '==', country);
       return res.status(200).json({ status: "userRecieved", users });
     } catch (err) {
       console.error("Error during getting users:", err);
@@ -158,8 +175,8 @@ app.post("/api/totalRegisteredUser", async (req, res) => {
     }
   }
   try {
-    establishMongooseConnection("mdAdminBack");
-    const users = await Users.find({});
+    // establishMongooseConnection("mdAdminBack");
+    const users = await accessAllCollectionItem("UserData");
     return res.status(200).json({ status: "userRecieved", users });
   } catch (err) {
     console.error("Error during getting users:", err);
@@ -167,10 +184,12 @@ app.post("/api/totalRegisteredUser", async (req, res) => {
   }
 });
 
-app.get("/api/getRealTimeUsers", async (req, res) => {
+
+app.post("/api/getRealTimeUsers", async (req, res) => {
   try {
     establishMongooseConnection("mdAdminBack");
-    const users = await Users.find({ active: true });
+    // const users = await Users.find({ active: true });
+    const users = await accessItemWithQuery("UserData", 'active', '==', 'true');
     return res.status(200).json({ status: "userRecieved", users });
   } catch (err) {
     console.error("Error during getting current users:", err);
@@ -178,11 +197,13 @@ app.get("/api/getRealTimeUsers", async (req, res) => {
   }
 });
 
-app.get("/api/getAvgScrnTimeBasedOnCountryLanguage", async (req, res) => {
+
+app.post("/api/getAvgScrnTimeBasedOnCountry", async (req, res) => {
   const { country, language } = req.body;
   try {
     establishMongooseConnection("mdAdminBack");
-    const users = await Users.find({ country, language });
+    // const users = await Users.find({ country, language });
+    const users = await accessItemWithQuery("UserData", 'country', '==', country);
     let avgTime = 0;
     let count = 0;
     users.forEach((user) => {
@@ -197,26 +218,14 @@ app.get("/api/getAvgScrnTimeBasedOnCountryLanguage", async (req, res) => {
   }
 });
 
-app.get("/api/getScreenTimeByUser", async (req, res) => {
-  const { userId } = req.body;
-  try {
-    establishMongooseConnection("mdAdminBack");
-    const user = await Users.findById(userId);
-    return res
-      .status(200)
-      .json({ status: "userRecieved", screenTime: user.scrnTime });
-  } catch (err) {
-    console.error("Error during getting average screen time:", err);
-    res.status(500).json({ status: "error", message: "Internal Server Error" });
-  }
-});
 
-app.post("/api/totalRegisteredContent", async (req, res) => {
+
+app.post("/api/allPosts", async (req, res) => {
   const { country } = req.body;
   if (country != undefined) {
     try {
       establishMongooseConnection("mdAdminBack");
-      const contents = await Contents.find({ country });
+      const contents = await accessAllCollectionItem("AllUserPosts");
       return res.status(200).json({ status: "userRecieved", contents });
     } catch (err) {
       console.error("Error during getting users:", err);
@@ -224,31 +233,23 @@ app.post("/api/totalRegisteredContent", async (req, res) => {
     }
   }
 });
+
+
 
 app.post("/api/contentWriterBasedOnCountry", async (req, res) => {
   const { country } = req.body;
   if (country != undefined) {
     try {
       establishMongooseConnection("mdAdminBack");
-      const contents = await Contents.find({ country });
+      // const contents = await Contents.find({ country });
+      const contents = await accessItemWithQuery("AllUserPosts", "country", "==", country);
       const writers=contents.map((content)=>{
-        return content.writer
+        return content.userId
       })
-      return res.status(200).json({ status: "userRecieved", writer });
-    } catch (err) {
-      console.error("Error during getting users:", err);
-      res.status(500).json({ status: "error", message: "Internal Server Error" });
-    }
-  }
-});
-
-app.post("/api/reportedContentBasedOnCategory", async (req, res) => {
-  const { category } = req.body;
-  if (category != undefined) {
-    try {
-      establishMongooseConnection("mdAdminBack");
-      const contents = await Contents.find({ category, reported:true });
-      return res.status(200).json({ status: "userRecieved", contents });
+      const users=writers.map((writer)=>{
+        return accessItemWithQuery("UserData", "id", "==", writer)
+      })
+      return res.status(200).json({ status: "userRecieved", users });
     } catch (err) {
       console.error("Error during getting users:", err);
       res.status(500).json({ status: "error", message: "Internal Server Error" });
@@ -257,10 +258,11 @@ app.post("/api/reportedContentBasedOnCategory", async (req, res) => {
 });
 
 
-app.post("/api/getAutoBlockedContents", async (req, res) => {
+
+app.post("/api/getBlockedContents", async (req, res) => {
   try {
     establishMongooseConnection("mdAdminBack");
-    const contents = await Contents.find({autoBlocked:true });
+    const contents = await accessItemWithQuery("AllUserPosts", 'block', '==',  true);
     return res.status(200).json({ status: "userRecieved", contents });
   } catch (err) {
     console.error("Error during getting users:", err);
@@ -272,51 +274,87 @@ app.post("/api/getAutoBlockedContents", async (req, res) => {
 app.post("/api/blockContent", async (req, res) => {
   const { contentId } = req.body;
   try {
-    establishMongooseConnection("mdAdminBack");
-    const contents = await Contents.findByIdandUpdate(contentId, {block:true }, {new:true});
-    return res.status(200).json({ status: "userRecieved", contents });
+    // Assuming "contents" is your Firestore collection name
+    const contentRef = db.collection('AllUserPosts').doc(contentId);
+    
+    // Update the document
+    await contentRef.update({ block: true });
+
+    // Optionally, get the updated document
+    const updatedContent = await contentRef.get();
+    const data = updatedContent.data();
+
+    return res.status(200).json({ status: "userReceived", content: data });
   } catch (err) {
-    console.error("Error during getting users:", err);
-    res.status(500).json({ status: "error", message: "Internal Server Error" });
+    console.error("Error during blocking content:", err);
+    return res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 });
 
 app.post("/api/unBlockContent", async (req, res) => {
   const { contentId } = req.body;
   try {
-    establishMongooseConnection("mdAdminBack");
-    const contents = await Contents.findByIdandUpdate(contentId, {block:false }, {new:true});
-    return res.status(200).json({ status: "userRecieved", contents });
+    // Assuming "contents" is your Firestore collection name
+    const contentRef = db.collection('AllUserPosts').doc(contentId);
+    
+    // Update the document
+    await contentRef.update({ block: false });
+
+    // Optionally, get the updated document
+    const updatedContent = await contentRef.get();
+    const data = updatedContent.data();
+
+    return res.status(200).json({ status: "userReceived", content: data });
   } catch (err) {
-    console.error("Error during getting users:", err);
-    res.status(500).json({ status: "error", message: "Internal Server Error" });
+    console.error("Error during blocking content:", err);
+    return res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 });
 
 app.post("/api/updateShareCount", async (req, res) => {
   const { contentId } = req.body;
   try {
-    establishMongooseConnection("mdAdminBack");
-    const content = await Contents.findById(contentId);
-    sharedTemp=content.shared
-    const contents = await Contents.findByIdandUpdate(contentId, {shared:sharedTemp+1 }, {new:true});
-    return res.status(200).json({ status: "userRecieved", contents });
+    // Assuming "contents" is your Firestore collection name
+    const contentRef = db.collection('AllUserPosts').doc(contentId);
+    
+    // Get the current document data
+    const contentSnapshot = await contentRef.get();
+    const contentData = contentSnapshot.data();
+    
+    // Increment the share count
+    const newShareCount = (contentData.shared || 0) + 1;
+
+    // Update the document with the new share count
+    await contentRef.update({ shared: newShareCount });
+
+    // Optionally, fetch the updated document data
+    const updatedContentSnapshot = await contentRef.get();
+    const updatedContentData = updatedContentSnapshot.data();
+
+    return res.status(200).json({ status: "userReceived", content: updatedContentData });
   } catch (err) {
-    console.error("Error during getting users:", err);
-    res.status(500).json({ status: "error", message: "Internal Server Error" });
+    console.error("Error during updating share count:", err);
+    return res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 });
-
 
 app.post("/api/getSharedCount", async (req, res) => {
   const { contentId } = req.body;
   try {
-    establishMongooseConnection("mdAdminBack");
-    const content = await Contents.findById(contentId);
-    return res.status(200).json({ status: "userRecieved", sharedTImes:content.shared });
+    // Assuming "contents" is your Firestore collection name
+    const contentRef = db.collection('AllUserPosts').doc(contentId);
+    
+    // Get the document data
+    const contentSnapshot = await contentRef.get();
+    const contentData = contentSnapshot.data();
+    
+    // Extract the shared count
+    const sharedTimes = contentData.shared || 0;
+
+    return res.status(200).json({ status: "userReceived", sharedTimes });
   } catch (err) {
-    console.error("Error during getting users:", err);
-    res.status(500).json({ status: "error", message: "Internal Server Error" });
+    console.error("Error during getting shared count:", err);
+    return res.status(500).json({ status: "error", message: "Internal Server Error" });
   }
 });
 
