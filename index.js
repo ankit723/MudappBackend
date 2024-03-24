@@ -222,7 +222,7 @@ app.post("/api/getAvgScrnTimeBasedOnCountry", async (req, res) => {
 
 app.post("/api/allPosts", async (req, res) => {
   const { country } = req.body;
-  if (country != undefined) {
+  if (country == undefined) {
     try {
       establishMongooseConnection("mdAdminBack");
       const contents = await accessAllCollectionItem("AllUserPosts");
