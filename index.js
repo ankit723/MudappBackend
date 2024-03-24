@@ -241,35 +241,53 @@ app.post("/api/contentWriterBasedOnCountry", async (req, res) => {
   if (country != undefined) {
     try {
       establishMongooseConnection("mdAdminBack");
-      // const contents = await Contents.find({ country });
-      const contents = await accessItemWithQuery("AllUserPosts", "country", "==", country);
-      const writers=contents.map((content)=>{
-        return content.userId
-      })
-      const users=writers.map((writer)=>{
-        return accessItemWithQuery("UserData", "userId", "==", writer)
-      })
-      return res.status(200).json({ status: "userRecieved", users });
-    } catch (err) {
+      const contents = await accessItemWithQuery("AllUserPosts", 'country', '==', country);
+      
+      // Extract userIds from contents
+      const writers = contents.map(content => content.userId);
+      console.log(writers);
+  
+      // Fetch users for each writer
+      const userPromises = writers.map(async (writer) => {
+          const user = await accessItemWithQuery("UserData", "id", "==", writer);
+          return user;
+      });
+  
+      // Wait for all userPromises to resolve
+      const users = await Promise.all(userPromises);
+      console.log(users);
+  
+      return res.status(200).json({ status: "userReceived", users });
+  } catch (err) {
       console.error("Error during getting users:", err);
-      res.status(500).json({ status: "error", message: "Internal Server Error" });
-    }
+      return res.status(500).json({ status: "error", message: "Internal Server Error" });
+  }
+  
   }else{
     try {
       establishMongooseConnection("mdAdminBack");
-      // const contents = await Contents.find({ country });
       const contents = await accessAllCollectionItem("AllUserPosts");
-      const writers=contents.map((content)=>{
-        return content.userId
-      })
-      const users=writers.map((writer)=>{
-        return accessItemWithQuery("UserData", "userId", "==", writer)
-      })
-      return res.status(200).json({ status: "userRecieved", users });
+      
+      // Extract userIds from contents
+      const writers = contents.map(content => content.userId);
+      console.log(writers);
+  
+      // Fetch users for each writer
+      const userPromises = writers.map(async (writer) => {
+          const user = await accessItemWithQuery("UserData", "id", "==", writer);
+          return user;
+      });
+  
+      // Wait for all userPromises to resolve
+      const users = await Promise.all(userPromises);
+      console.log(users);
+  
+      return res.status(200).json({ status: "userReceived", users });
     } catch (err) {
-      console.error("Error during getting users:", err);
-      res.status(500).json({ status: "error", message: "Internal Server Error" });
+        console.error("Error during getting users:", err);
+        return res.status(500).json({ status: "error", message: "Internal Server Error" });
     }
+  
   }
 });
 
