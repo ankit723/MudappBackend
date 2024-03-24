@@ -247,7 +247,7 @@ app.post("/api/contentWriterBasedOnCountry", async (req, res) => {
         return content.userId
       })
       const users=writers.map((writer)=>{
-        return accessItemWithQuery("UserData", "id", "==", writer)
+        return accessItemWithQuery("UserData", "userId", "==", writer)
       })
       return res.status(200).json({ status: "userRecieved", users });
     } catch (err) {
@@ -263,7 +263,7 @@ app.post("/api/contentWriterBasedOnCountry", async (req, res) => {
         return content.userId
       })
       const users=writers.map((writer)=>{
-        return accessItemWithQuery("UserData", "id", "==", writer)
+        return accessItemWithQuery("UserData", "userId", "==", writer)
       })
       return res.status(200).json({ status: "userRecieved", users });
     } catch (err) {
