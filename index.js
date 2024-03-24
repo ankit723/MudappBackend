@@ -254,6 +254,22 @@ app.post("/api/contentWriterBasedOnCountry", async (req, res) => {
       console.error("Error during getting users:", err);
       res.status(500).json({ status: "error", message: "Internal Server Error" });
     }
+  }else{
+    try {
+      establishMongooseConnection("mdAdminBack");
+      // const contents = await Contents.find({ country });
+      const contents = await accessAllCollectionItem("AllUserPosts");
+      const writers=contents.map((content)=>{
+        return content.userId
+      })
+      const users=writers.map((writer)=>{
+        return accessItemWithQuery("UserData", "id", "==", writer)
+      })
+      return res.status(200).json({ status: "userRecieved", users });
+    } catch (err) {
+      console.error("Error during getting users:", err);
+      res.status(500).json({ status: "error", message: "Internal Server Error" });
+    }
   }
 });
 
