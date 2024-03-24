@@ -203,7 +203,7 @@ app.post("/api/getAvgScrnTimeBasedOnCountry", async (req, res) => {
   try {
     establishMongooseConnection("mdAdminBack");
     // const users = await Users.find({ country, language });
-    const users = await accessItemWithQuery("UserData", 'country', '==', country);
+    const users = await accessAllCollectionItem("UserData");
     let avgTime = 0;
     let count = 0;
     users.forEach((user) => {
